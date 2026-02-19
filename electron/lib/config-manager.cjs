@@ -1,5 +1,21 @@
 const fs = require('fs')
 const path = require('path')
+const { spawnSync } = require('child_process')
+
+function resolvePythonExec() {
+  // On Windows 'python' is the standard entry point; on macOS/Linux 'python3'
+  // is typically the only available command.
+  const candidates = process.platform === 'win32'
+    ? ['python', 'python3']
+    : ['python3', 'python']
+  for (const cmd of candidates) {
+    try {
+      const r = spawnSync(cmd, ['--version'], { timeout: 3000, encoding: 'utf8', shell: false })
+      if (r.status === 0) return cmd
+    } catch (_) { /* not found, try next */ }
+  }
+  return candidates[0] // best-effort fallback
+}
 
 function resolveDefaultWorkdir() {
   if (process.env.MDRAG_WORKDIR && fs.existsSync(process.env.MDRAG_WORKDIR)) {
@@ -34,7 +50,7 @@ function defaultConfig(runtimeOpts = {}) {
     qdrantCollection: 'mdrag_chunks',
     embeddingModel: 'llama3.1:8b',
     chatModel: 'llama3.1:8b',
-    pythonExec: 'python',
+    pythonExec: resolvePythonExec(),
     mdragWorkdir: workdir,
     dbPath: path.join(dataRoot, 'index.db'),
     workspaceRoot,
@@ -84,6 +100,19 @@ function loadConfig(configPath, runtimeOpts = {}) {
     }
   }
   merged.workspaceRoot = merged.workspaceRoot || base.workspaceRoot
+  // If the saved pythonExec is a bare 'python' that doesn't actually exist on
+  // this machine, override with the probed executable so the app works out of
+  // the box on macOS/Linux without requiring manual config edits.
+  if (merged.pythonExec) {
+    try {
+      const probe = spawnSync(merged.pythonExec, ['--version'], { timeout: 2000, encoding: 'utf8', shell: false })
+      if (probe.status !== 0) merged.pythonExec = base.pythonExec
+    } catch (_) {
+      merged.pythonExec = base.pythonExec
+    }
+  } else {
+    merged.pythonExec = base.pythonExec
+  }
   if (!Object.prototype.hasOwnProperty.call(raw, 'selectedKnowledgeBase')) {
     merged.selectedKnowledgeBase = base.selectedKnowledgeBase
   }
