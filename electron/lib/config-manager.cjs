@@ -1,6 +1,35 @@
 const fs = require('fs')
 const path = require('path')
+const http = require('http')
 const { spawnSync } = require('child_process')
+
+/**
+ * Fetch Ollama model list synchronously (best-effort, 2 s timeout).
+ * Returns an array of model name strings, or [] on failure.
+ */
+function fetchOllamaModelNamesSync(ollamaUrl) {
+  return new Promise((resolve) => {
+    try {
+      const u = new URL('/api/tags', ollamaUrl)
+      const req = http.request(
+        { hostname: u.hostname, port: u.port || 11434, path: u.pathname, method: 'GET', timeout: 2000 },
+        (res) => {
+          let buf = ''
+          res.on('data', (d) => (buf += d))
+          res.on('end', () => {
+            try {
+              const data = JSON.parse(buf)
+              resolve((data.models || []).map((m) => m.name).filter(Boolean))
+            } catch { resolve([]) }
+          })
+        }
+      )
+      req.on('error', () => resolve([]))
+      req.on('timeout', () => { req.destroy(); resolve([]) })
+      req.end()
+    } catch { resolve([]) }
+  })
+}
 
 function resolvePythonExec() {
   // On Windows 'python' is the standard entry point; on macOS/Linux 'python3'
@@ -179,10 +208,45 @@ function removeSource(configPath, sourcePath, runtimeOpts = {}) {
   return saveConfig(configPath, current, runtimeOpts)
 }
 
+/**
+ * If the configured embedding/chat model names are not present in the Ollama
+ * instance, replace them with the first available model and persist the fix.
+ * This prevents "model not found" 404 errors for users who never changed the
+ * default model names.
+ *
+ * @param {string} configPath  Path to config.json
+ * @param {object} cfg         Already-loaded config object (mutated in place)
+ * @param {object} runtimeOpts Runtime options forwarded to saveConfig
+ * @returns {Promise<object>}  The (possibly updated) cfg
+ */
+async function autoFixModelNames(configPath, cfg, runtimeOpts = {}) {
+  const models = await fetchOllamaModelNamesSync(cfg.ollamaUrl || 'http://127.0.0.1:11434')
+  if (!models.length) return cfg  // Ollama unreachable – leave as-is
+
+  const modelSet = new Set(models)
+  const fallback = models[0]
+  let changed = false
+
+  if (!modelSet.has(cfg.embeddingModel)) {
+    cfg.embeddingModel = fallback
+    changed = true
+  }
+  if (!modelSet.has(cfg.chatModel)) {
+    cfg.chatModel = fallback
+    changed = true
+  }
+
+  if (changed) {
+    saveConfig(configPath, cfg, runtimeOpts)
+  }
+  return cfg
+}
+
 module.exports = {
   defaultConfig,
   loadConfig,
   saveConfig,
   addSource,
-  removeSource
+  removeSource,
+  autoFixModelNames
 }

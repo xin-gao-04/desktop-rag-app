@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron')
 const path = require('path')
 const fs = require('fs')
-const { loadConfig, saveConfig, addSource, removeSource } = require('./lib/config-manager.cjs')
+const { loadConfig, saveConfig, addSource, removeSource, autoFixModelNames } = require('./lib/config-manager.cjs')
 const { runDoctor, runIndex, runAsk, runAskStream } = require('./lib/rag-runner.cjs')
 const { getRuntimeStatus, setupRuntime } = require('./lib/runtime-bootstrap.cjs')
 const {
@@ -96,7 +96,9 @@ function openManualWindow() {
 
 ipcMain.handle('app:getConfig', async () => {
   const cfgPath = getConfigPath()
-  const cfg = loadConfig(cfgPath, getRuntimeOptions())
+  let cfg = loadConfig(cfgPath, getRuntimeOptions())
+  // Auto-correct model names that aren't installed in the local Ollama instance
+  cfg = await autoFixModelNames(cfgPath, cfg, getRuntimeOptions())
   const hasSelectedKb = typeof cfg.selectedKnowledgeBase === 'string' && cfg.selectedKnowledgeBase.trim().length > 0
   if (hasSelectedKb) {
     const ensured = ensureKnowledgeBase(cfg.workspaceRoot, cfg.selectedKnowledgeBase)

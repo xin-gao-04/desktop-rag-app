@@ -140,6 +140,32 @@ function safeJsonParse(text) {
   }
 }
 
+/**
+ * Convert raw Python stderr/stdout into a concise, user-readable message.
+ * Falls back to the original text when no known pattern matches.
+ */
+function friendlyError(raw) {
+  if (!raw) return '未知错误'
+  if (/model .* not found/i.test(raw) || /try pulling it first/i.test(raw)) {
+    const m = raw.match(/model "([^"]+)" not found/)
+    const name = m ? m[1] : '所配置的模型'
+    return `模型 "${name}" 未安装。请在设置中将 embeddingModel / chatModel 改为已拉取的模型名称（如 qwen2.5:3b），或先运行 ollama pull ${name}。`
+  }
+  if (/index is empty/i.test(raw)) {
+    return '索引为空，请先执行「重建索引」。'
+  }
+  if (/connection.*refused|failed to connect/i.test(raw)) {
+    return 'Ollama 服务未响应，请确认 Ollama 正在运行（ollama serve）。'
+  }
+  if (/no such file or directory/i.test(raw)) {
+    return '知识库目录不存在，请重新选择或导入文件。'
+  }
+  // Return only the last meaningful line to avoid dumping a full traceback
+  const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean)
+  const last = lines[lines.length - 1] || raw
+  return last.length < 300 ? last : last.slice(0, 300) + '…'
+}
+
 function enrichSources(result) {
   const dedup = new Map()
   const sources = result.sources || []
@@ -290,8 +316,10 @@ async function runIndex(cfg) {
   const vectorConfig = appendVectorArgs(args, cfg)
   const retrievalConfig = appendRetrievalArgs(args, cfg)
   const res = await runCommand(cfg.pythonExec, args, cfg.mdragWorkdir, buildPythonEnv(cfg))
+  const errorText = res.code !== 0 ? friendlyError(res.stderr || res.stdout) : undefined
   return {
     ok: res.code === 0,
+    error: errorText,
     indexedChunks: parseIndexedChunks(res.stdout),
     mergedFiles: merged.copied,
     unchangedFiles: merged.unchanged,
@@ -314,7 +342,7 @@ async function runAsk(cfg, question) {
   appendRetrievalArgs(args, cfg)
   const res = await runCommand(cfg.pythonExec, args, cfg.mdragWorkdir, buildPythonEnv(cfg))
   if (res.code !== 0) {
-    return { ok: false, error: res.stderr || res.stdout }
+    return { ok: false, error: friendlyError(res.stderr || res.stdout) }
   }
   const parsed = safeJsonParse(res.stdout)
   if (!parsed) return { ok: false, error: 'Invalid JSON result', raw: res.stdout }
