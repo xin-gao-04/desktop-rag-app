@@ -703,7 +703,7 @@ async function refreshKnowledgeBases() {
 async function saveConfig() {
   beginAction('正在保存配置...', 'config')
   try {
-    const res = await window.desktopRag.saveConfig({ ...config })
+    const res = await window.desktopRag.saveConfig(JSON.parse(JSON.stringify(config)))
     if (!res.ok) throw new Error('保存配置失败')
     applyConfigFromSystem(res.config)
     await refreshKnowledgeBases()
