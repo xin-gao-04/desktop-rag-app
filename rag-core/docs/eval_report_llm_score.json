@@ -1,0 +1,174 @@
+{
+  "summary": {
+    "cases": 3,
+    "hit_at_k": 1.0,
+    "mrr": 0.5833333333333334,
+    "source_coverage": 1.0,
+    "answer_keyword_recall": 0.8888888888888888
+  },
+  "config": {
+    "ollama_url": "http://127.0.0.1:11434",
+    "embedding_model": "llama3.1:8b",
+    "chat_model": "llama3.1:8b",
+    "chunk_size": 600,
+    "chunk_overlap": 120,
+    "top_k": 4,
+    "retrieval_strategy": "hybrid",
+    "dense_candidate_multiplier": 3,
+    "rrf_k": 60,
+    "min_retrieval_score": 0.0,
+    "max_context_chars": 5000,
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "reranker": "llm_score",
+    "rerank_top_n": 4
+  },
+  "dataset": "D:\\code\\md-rag-ollama-local\\docs\\eval_set_sample.jsonl",
+  "db": "D:\\code\\md-rag-ollama-local\\index.db",
+  "rows": [
+    {
+      "question": "本地RAG构建流程是什么？",
+      "expected_sources": [
+        "local_deploy.md",
+        "README.md"
+      ],
+      "must_include_any": [
+        "index",
+        "knowledge",
+        "ollama"
+      ],
+      "result": {
+        "question": "本地RAG构建流程是什么？",
+        "answer": "根据给出的上下文信息，构建本地RAG的流程如下：\n\n1. 添加自己的Markdown文件到知识库中（folder：`.merged_knowledge/knowledge/`）\n2. 运行命令 `index`\n\n注意：没有提供构建过程中的具体详细步骤或技术细节。",
+        "sources": [
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_1_README.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ceb69e7386_README.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ffb85f7338_local_deploy.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_0_local_deploy.md"
+        ],
+        "scores": [
+          0.7419590163934425,
+          0.6654193548387097,
+          0.35934374999999996,
+          0.053380952380952376
+        ],
+        "retrieval": {
+          "strategy": "hybrid",
+          "reranker": "llm_score",
+          "context_chars": 1094,
+          "context_truncated": false
+        }
+      },
+      "metrics": {
+        "retrieved": [
+          "0_1_README.md",
+          "README.md",
+          "local_deploy.md",
+          "0_0_local_deploy.md"
+        ],
+        "hit_at_k": true,
+        "mrr": 0.5,
+        "source_coverage": 1.0,
+        "matched_sources": [
+          "README.md",
+          "local_deploy.md"
+        ],
+        "answer_keyword_recall": 0.6666666666666666
+      }
+    },
+    {
+      "question": "如果doctor失败应该怎么处理？",
+      "expected_sources": [
+        "README.md"
+      ],
+      "must_include_any": [
+        "doctor",
+        "python -m mdrag.cli doctor"
+      ],
+      "result": {
+        "question": "如果doctor失败应该怎么处理？",
+        "answer": "如果doctor失败应该怎么处理？\n\n答：如果doctor失败，应运行：`python -m mdrag.cli doctor`",
+        "sources": [
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_0_local_deploy.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ffb85f7338_local_deploy.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_1_README.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ceb69e7386_README.md"
+        ],
+        "scores": [
+          0.27445901639344267,
+          0.17234375000000002,
+          0.01639344262295082,
+          0.016129032258064516
+        ],
+        "retrieval": {
+          "strategy": "hybrid",
+          "reranker": "llm_score",
+          "context_chars": 1490,
+          "context_truncated": false
+        }
+      },
+      "metrics": {
+        "retrieved": [
+          "0_0_local_deploy.md",
+          "local_deploy.md",
+          "0_1_README.md",
+          "README.md"
+        ],
+        "hit_at_k": true,
+        "mrr": 0.25,
+        "source_coverage": 1.0,
+        "matched_sources": [
+          "README.md"
+        ],
+        "answer_keyword_recall": 1.0
+      }
+    },
+    {
+      "question": "知识库如何加载和更新？",
+      "expected_sources": [
+        "README.md"
+      ],
+      "must_include_any": [
+        "markdown",
+        "index"
+      ],
+      "result": {
+        "question": "知识库如何加载和更新？",
+        "answer": "知识库如何加载和更新？\n \n根据提供的上下文，知识库可以通过以下步骤进行加载和更新：\n\n* 添加markdown文件到knowledge/目录中\n* 运行index命令来构建本地RAG索引 \n\n具体命令参考[README.md]和[0_local_deploy.md](但未直接给出具体执行流程)，如下所示：\n \n1. 添加自定义的Markdown文件到`knowledge/`目录中。\n2. 运行 `index` 命令。",
+        "sources": [
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ceb69e7386_README.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_0_local_deploy.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_ffb85f7338_local_deploy.md",
+          "D:\\code\\md-rag-ollama-local\\.merged_knowledge\\0_1_README.md"
+        ],
+        "scores": [
+          0.7249193548387096,
+          0.3933809523809524,
+          0.36784374999999997,
+          0.2914590163934427
+        ],
+        "retrieval": {
+          "strategy": "hybrid",
+          "reranker": "llm_score",
+          "context_chars": 1094,
+          "context_truncated": false
+        }
+      },
+      "metrics": {
+        "retrieved": [
+          "README.md",
+          "0_0_local_deploy.md",
+          "local_deploy.md",
+          "0_1_README.md"
+        ],
+        "hit_at_k": true,
+        "mrr": 1.0,
+        "source_coverage": 1.0,
+        "matched_sources": [
+          "README.md"
+        ],
+        "answer_keyword_recall": 1.0
+      }
+    }
+  ]
+}

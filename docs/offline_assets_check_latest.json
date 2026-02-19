@@ -1,0 +1,45 @@
+﻿{
+    "checkedAt":  "2026-02-18T13:09:31",
+    "assetRoot":  "D:\\code\\desktop-rag-app\\offline-assets",
+    "ok":  true,
+    "missingRequired":  [
+
+                        ],
+    "items":  [
+                  {
+                      "path":  "python\\python-installer.exe",
+                      "required":  true,
+                      "exists":  true,
+                      "size":  26216840,
+                      "hint":  "Python Windows offline installer"
+                  },
+                  {
+                      "path":  "docker\\DockerDesktopInstaller.exe",
+                      "required":  true,
+                      "exists":  true,
+                      "size":  655537072,
+                      "hint":  "Docker Desktop installer"
+                  },
+                  {
+                      "path":  "ollama\\OllamaSetup.exe",
+                      "required":  true,
+                      "exists":  true,
+                      "size":  1263076184,
+                      "hint":  "Ollama installer"
+                  },
+                  {
+                      "path":  "qdrant\\qdrant-image.tar",
+                      "required":  true,
+                      "exists":  true,
+                      "size":  192438272,
+                      "hint":  "docker save qdrant/qdrant:latest output"
+                  },
+                  {
+                      "path":  "models\\ollama-model-llama3.1-8b.tar",
+                      "required":  true,
+                      "exists":  true,
+                      "size":  4920762368,
+                      "hint":  "exported via scripts/offline/export-ollama-model.ps1"
+                  }
+              ]
+}

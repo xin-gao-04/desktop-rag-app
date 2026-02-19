@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "updatedAt": "2026-02-17T14:06:12.430Z",
+  "items": [
+    {
+      "id": "f899737534c8",
+      "name": "default",
+      "path": "D:\\code\\md-rag-ollama-local\\knowledge_bases\\default",
+      "createdAt": "2026-02-17T08:52:46.118Z",
+      "updatedAt": "2026-02-17T14:06:12.429Z",
+      "lastIndexedAt": "2026-02-17T14:06:12.429Z",
+      "lastUsedAt": "2026-02-17T14:05:34.585Z",
+      "indexStatus": "ready",
+      "docCount": 4
+    }
+  ]
+}

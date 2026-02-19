@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "md-rag-ollama-local"
+version = "0.1.0"
+description = "Local Markdown RAG with Ollama"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+  "numpy>=1.24",
+  "requests>=2.31",
+  "qdrant-client>=1.9"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0"
+]
+
+[project.scripts]
+mdrag = "mdrag.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

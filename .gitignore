@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+*.log
+release/
+rag-core/.merged_knowledge/
+rag-core/index.db
+offline-assets/*
+!offline-assets/README.md

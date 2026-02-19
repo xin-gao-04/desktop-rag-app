@@ -1,0 +1,45 @@
+appId: com.local.rag.desktop
+productName: 本地知识库助手
+directories:
+  output: release
+files:
+  - dist/**
+  - electron/**
+  - manual.html
+  - package.json
+asar: true
+asarUnpack:
+  - electron/**
+extraResources:
+  - from: rag-core
+    to: rag-core
+    filter:
+      - src/**
+      - scripts/**
+      - docs/**
+      - knowledge/**
+      - requirements.txt
+      - pyproject.toml
+      - README.md
+      - '!**/__pycache__/**'
+      - '!**/.pytest_cache/**'
+      - '!**/.git/**'
+  - from: installer
+    to: installer
+    filter:
+      - windows/**
+win:
+  icon: electron/assets/app-icon.png
+  signAndEditExecutable: false
+  verifyUpdateCodeSignature: false
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true

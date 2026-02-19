@@ -1,0 +1,3 @@
+{"question":"本地RAG构建流程是什么？","expected_sources":["local_deploy.md","README.md"],"must_include_any":["index","knowledge","ollama"]}
+{"question":"如果doctor失败应该怎么处理？","expected_sources":["README.md"],"must_include_any":["doctor","python -m mdrag.cli doctor"]}
+{"question":"知识库如何加载和更新？","expected_sources":["README.md"],"must_include_any":["markdown","index"]}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>操作手册</title>
+    <style>
+      body { margin: 0; font-family: "Segoe UI", "PingFang SC", sans-serif; color: #1f2937; background: #f5f7fb; }
+      .wrap { max-width: 920px; margin: 0 auto; padding: 20px; }
+      .card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 8px 22px rgba(15,23,42,.08); }
+      h1 { margin: 0 0 12px; }
+      h2 { margin: 0 0 10px; font-size: 18px; }
+      p, li { line-height: 1.7; }
+      code { background: #eef2ff; border-radius: 6px; padding: 2px 6px; }
+      .tip { background: #ecfdf3; border: 1px solid #abefc6; color: #067647; border-radius: 10px; padding: 10px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1>本地 RAG 桌面助手操作手册</h1>
+        <p>建议按固定顺序执行：<strong>保存配置 → 下拉加载知识库（或创建）→ 重建索引 → 发起提问</strong>。</p>
+        <div class="tip">每次更新知识文档后，都需要重新执行“重建索引”。</div>
+      </div>
+
+      <div class="card">
+        <h2>1. 配置准备</h2>
+        <ul>
+          <li>点击主界面“健康检查”，确认 Ollama 可连接。</li>
+          <li>确认配置项：<code>Ollama URL</code>、<code>向量模型</code>、<code>对话模型</code>、<code>Python</code>、<code>工作目录</code>、<code>知识库工作空间目录</code>。</li>
+          <li>如需调优检索质量，在“配置设置”里切换到“专家模式”，可设置 <code>retrieval_strategy</code>、<code>reranker</code>、<code>top_k</code> 等高级参数。</li>
+          <li>新手可先点“一键填入推荐配置”，再点击“保存配置”。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>2. 数据加卸载</h2>
+        <ul>
+          <li>“知识库设置”顶部可选场景模板：<code>文档问答</code>、<code>代码库问答</code>、<code>高精度慢速</code>。</li>
+          <li>在“知识库区”通过下拉框选择知识库，点击“加载知识库”。</li>
+          <li>如需临时切走当前知识库，点击“卸载当前”。</li>
+          <li>如需删除知识库，可在下拉框选中后点击“删除知识库”。</li>
+          <li>任何知识库变更后都必须“重建索引”。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>3. 创建知识库向导</h2>
+        <ul>
+          <li>步骤 A：输入知识库名称（如 <code>project-notes</code>）。</li>
+          <li>步骤 B：选择导入方式（空库 / 导入 Markdown 文件 / 导入 Markdown 目录）。</li>
+          <li>步骤 C：点击“创建并加载”，系统会自动完成创建、导入、加载。</li>
+          <li>完成后立即执行“重建索引”。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>4. 索引与查询</h2>
+        <ul>
+          <li>点击“重建索引”，等待看到索引块数大于 0。</li>
+          <li>在查询区输入问题，点击“开始提问”。</li>
+          <li>结果会显示回答与来源片段（含分数）。</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>5. 常见问题</h2>
+        <ul>
+          <li>健康检查失败：先确认 Ollama 服务正在运行（默认 <code>http://127.0.0.1:11434</code>）。</li>
+          <li>重建索引失败：检查 Python 路径、工作目录、数据库路径是否有效。</li>
+          <li>提问无结果：通常是未重建索引，或当前知识库内没有 Markdown 文档。</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

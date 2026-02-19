@@ -1,0 +1,36 @@
+{
+  "name": "desktop-rag-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Electron + Vue desktop app for local markdown RAG",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"npm:dev:electron\"",
+    "dev:electron": "wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
+    "start": "npm run build && electron .",
+    "build": "vite build --base ./",
+    "dist:win": "npm run build && cross-env ELECTRON_MIRROR= ELECTRON_CUSTOM_DIR= CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win nsis portable",
+    "dist:win:minenv": "npm run dist:win",
+    "verify:offline-assets": "powershell -ExecutionPolicy Bypass -File .\\scripts\\offline\\verify-offline-assets.ps1 -AssetRoot .\\offline-assets -ReportPath .\\docs\\offline_assets_check_latest.json",
+    "bundle:offline": "powershell -ExecutionPolicy Bypass -File .\\scripts\\offline\\build-offline-bundle.ps1 -BuildInstaller",
+    "setup:runtime": "powershell -ExecutionPolicy Bypass -File .\\installer\\windows\\setup-min-runtime.ps1 -InstallPython $true -InstallDocker $true -InstallOllama $true -StartQdrant $true -PullModel $false -ModelName llama3.1:8b",
+    "setup:runtime:offline": "powershell -ExecutionPolicy Bypass -File .\\installer\\windows\\setup-offline-runtime.ps1 -AssetRoot .\\offline-assets -InstallPython true -InstallDocker true -InstallOllama true -StartQdrant true -PullModel false -ModelName llama3.1:8b",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke": "node scripts/smoke_rag.cjs"
+  },
+  "dependencies": {
+    "vue": "^3.4.38"
+  },
+  "devDependencies": {
+    "@esbuild/win32-x64": "^0.27.3",
+    "@vitejs/plugin-vue": "^5.1.2",
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^31.7.7",
+    "electron-builder": "^25.1.8",
+    "vite": "^5.4.2",
+    "vitest": "^2.0.5",
+    "wait-on": "^8.0.1"
+  }
+}
