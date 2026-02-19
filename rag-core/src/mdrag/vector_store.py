@@ -7,10 +7,16 @@ from typing import Iterable
 
 from .models import Chunk, RetrievedChunk
 
+_SENTINEL = object()  # unique sentinel for "no cached entry"
+
 
 class VectorStore:
     def __init__(self, db_path: str | Path) -> None:
         self.db_path = str(db_path)
+        # In-process cache: avoids re-reading the full table twice per hybrid
+        # search (dense + sparse both call all()).  Key: kb_id (or None for
+        # "all kb_ids").  Invalidated by clear() and upsert_chunks().
+        self._cache: dict[str | None, list[tuple[Chunk, list[float]]]] = {}
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
@@ -36,7 +42,16 @@ class VectorStore:
             con.execute("CREATE INDEX IF NOT EXISTS idx_chunks_kb_id ON chunks(kb_id)")
             con.commit()
 
+    def _invalidate_cache(self, kb_id: str | None = None) -> None:
+        """Invalidate the full cache or only the entry for a specific kb_id."""
+        if kb_id is None:
+            self._cache.clear()
+        else:
+            self._cache.pop(kb_id, None)
+            self._cache.pop(None, None)  # global "all" entry is now stale too
+
     def clear(self, kb_id: str | None = None) -> None:
+        self._invalidate_cache(kb_id)
         with self._connect() as con:
             if kb_id is None:
                 con.execute("DELETE FROM chunks")
@@ -49,6 +64,7 @@ class VectorStore:
         if len(rows) != len(vectors):
             raise ValueError("chunks and vectors length mismatch")
 
+        self._invalidate_cache(kb_id)
         with self._connect() as con:
             for chunk, vec in zip(rows, vectors):
                 con.execute(
@@ -67,6 +83,9 @@ class VectorStore:
         return len(rows)
 
     def all(self, kb_id: str | None = None) -> list[tuple[Chunk, list[float]]]:
+        if kb_id in self._cache:
+            return self._cache[kb_id]
+
         with self._connect() as con:
             if kb_id is None:
                 cur = con.execute("SELECT chunk_id, source_path, text, vector_json FROM chunks")
@@ -76,9 +95,12 @@ class VectorStore:
                     (kb_id,),
                 )
             rows = cur.fetchall()
+
         out: list[tuple[Chunk, list[float]]] = []
         for chunk_id, source_path, text, vector_json in rows:
             out.append((Chunk(chunk_id=chunk_id, source_path=source_path, text=text), json.loads(vector_json)))
+
+        self._cache[kb_id] = out
         return out
 
     def count(self, kb_id: str | None = None) -> int:

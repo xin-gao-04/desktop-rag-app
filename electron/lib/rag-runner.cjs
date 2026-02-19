@@ -40,7 +40,8 @@ function spawnCommand(cmd, args, cwd, extraEnv = {}) {
 
 function buildPythonEnv(cfg) {
   const srcPath = path.join(cfg.mdragWorkdir, 'src')
-  const existing = process.env.PYTHONPATH ? `${process.env.PYTHONPATH};${srcPath}` : srcPath
+  // Use the OS-specific path separator (: on macOS/Linux, ; on Windows)
+  const existing = process.env.PYTHONPATH ? `${process.env.PYTHONPATH}${path.delimiter}${srcPath}` : srcPath
   return {
     PYTHONPATH: existing,
     PYTHONUTF8: '1',

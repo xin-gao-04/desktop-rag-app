@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from typing import Iterable
 
 import requests
@@ -23,12 +24,11 @@ class QdrantStore:
         self._client = QdrantClient(url=self.url, api_key=self.api_key) if self._use_sdk else None
 
     @staticmethod
-    def _point_id(chunk_id: str) -> int:
-        # Qdrant accepts integer/uuid ids. Use stable positive integer derived from chunk id.
-        key = str(chunk_id or "")
-        if not key:
-            return 0
-        return int(key[:15], 16) if all(c in "0123456789abcdef" for c in key[:15].lower()) else abs(hash(key))
+    def _point_id(chunk_id: str) -> str:
+        # Use UUID5 (SHA-1 based, deterministic) so the full chunk_id entropy is
+        # preserved and collisions are cryptographically unlikely.
+        # Qdrant accepts both integer and UUID string point IDs.
+        return str(uuid.uuid5(uuid.NAMESPACE_X500, chunk_id or ""))
 
     def _headers(self) -> dict:
         h = {"Content-Type": "application/json"}

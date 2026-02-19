@@ -10,40 +10,48 @@ import requests
 class OllamaClient:
     def __init__(self, base_url: str) -> None:
         self.base_url = base_url.rstrip("/")
+        self._session = requests.Session()
+        # Bypass system/environment proxy so localhost Ollama is always reachable
+        # even when tools like Clash or system proxy settings are active.
+        self._session.trust_env = False
 
     def health(self) -> bool:
         try:
-            r = requests.get(f"{self.base_url}/api/tags", timeout=5)
+            r = self._session.get(f"{self.base_url}/api/tags", timeout=5)
             return r.ok
         except requests.RequestException:
             return False
 
     def list_models(self) -> list[str]:
-        r = requests.get(f"{self.base_url}/api/tags", timeout=10)
+        r = self._session.get(f"{self.base_url}/api/tags", timeout=10)
         r.raise_for_status()
         data = r.json()
         return [m.get("name", "") for m in data.get("models", [])]
 
-    def embed(self, model: str, texts: list[str], timeout_sec: int = 60) -> list[list[float]]:
+    def embed(self, model: str, texts: list[str], timeout_sec: int = 60, batch_size: int = 32) -> list[list[float]]:
+        """Embed texts in batches using Ollama /api/embed batch input."""
+        if not texts:
+            return []
         safe_timeout = max(int(timeout_sec or 60), 10)
-        vectors: list[list[float]] = []
-        for text in texts:
-            r = requests.post(
+        results: list[list[float]] = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i : i + batch_size]
+            r = self._session.post(
                 f"{self.base_url}/api/embed",
-                json={"model": model, "input": text},
+                json={"model": model, "input": batch},
                 timeout=safe_timeout,
             )
             r.raise_for_status()
             data = r.json()
-            emb = data.get("embeddings", [])
-            if not emb:
-                raise RuntimeError("empty embedding returned")
-            vectors.append(emb[0])
-        return vectors
+            embeddings = data.get("embeddings", [])
+            if len(embeddings) != len(batch):
+                raise RuntimeError(f"expected {len(batch)} embeddings, got {len(embeddings)}")
+            results.extend(embeddings)
+        return results
 
     def generate(self, model: str, prompt: str, timeout_sec: int = 120) -> str:
         safe_timeout = max(int(timeout_sec or 120), 10)
-        r = requests.post(
+        r = self._session.post(
             f"{self.base_url}/api/generate",
             json={"model": model, "prompt": prompt, "stream": False},
             timeout=safe_timeout,
@@ -54,7 +62,7 @@ class OllamaClient:
 
     def generate_stream(self, model: str, prompt: str, timeout_sec: int = 120) -> Iterator[str]:
         safe_timeout = max(int(timeout_sec or 120), 10)
-        with requests.post(
+        with self._session.post(
             f"{self.base_url}/api/generate",
             json={"model": model, "prompt": prompt, "stream": True},
             timeout=safe_timeout,

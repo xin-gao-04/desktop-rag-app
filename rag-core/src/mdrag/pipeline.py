@@ -325,31 +325,23 @@ class RagPipeline:
         return name
 
     def _dedup_hits(self, hits: Iterable[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
-        seen: set[str] = set()
+        # Allow up to max_per_source chunks from the same file so that long
+        # documents aren't reduced to a single passage.
+        max_per_source = max(int(getattr(self.config, "max_chunks_per_source", 2) or 2), 1)
+        source_counts: dict[str, int] = {}
         out: list[RetrievedChunk] = []
         min_score = float(getattr(self.config, "min_retrieval_score", 0.0) or 0.0)
 
-        for h in hits:
+        for h in list(hits):
             if h.score < min_score:
                 continue
             src_key = self._source_key(h.source_path)
-            if src_key in seen:
+            if source_counts.get(src_key, 0) >= max_per_source:
                 continue
-            seen.add(src_key)
+            source_counts[src_key] = source_counts.get(src_key, 0) + 1
             out.append(h)
             if len(out) >= top_k:
                 break
-
-        # Keep recall robustness: if threshold is too aggressive, backfill with highest candidates.
-        if len(out) < top_k and min_score <= 0:
-            for h in hits:
-                src_key = self._source_key(h.source_path)
-                if src_key in seen:
-                    continue
-                seen.add(src_key)
-                out.append(h)
-                if len(out) >= top_k:
-                    break
 
         return out
 
